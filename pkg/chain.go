@@ -96,8 +96,8 @@ func init() {
 			}
 			for _, c := range chains {
 				if strings.HasPrefix(c.Name, toComplete) {
+					a = append(a, c.Name)
 				}
-				a = append(a, c.Name)
 			}
 			return a, cobra.ShellCompDirectiveNoFileComp
 		},

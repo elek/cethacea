@@ -44,10 +44,6 @@ func NewEthFromURL(url string) (*Eth, error) {
 
 }
 
-func (c *Eth) getNonce(ctx context.Context, address common.Address) (uint64, error) {
-	return c.Client.NonceAt(ctx, address, nil)
-}
-
 func (c *Eth) getChainId(ctx context.Context) (*big.Int, error) {
 	return c.Client.ChainID(ctx)
 }
@@ -152,17 +148,6 @@ func (c *Eth) TokenInfo(ctx context.Context, token common.Address) (types.Item, 
 	}
 	return r, nil
 }
-
-func arg(name string, ty byte, size int) abi.Argument {
-	return abi.Argument{
-		Name: name,
-		Type: abi.Type{
-			Size: size,
-			T:    ty,
-		},
-	}
-}
-
 func (c *Eth) SendTransaction(ctx context.Context, from types.Account, to *common.Address, options ...interface{}) (common.Hash, error) {
 	return c.sendRawTransaction(ctx, from, to, options...)
 }

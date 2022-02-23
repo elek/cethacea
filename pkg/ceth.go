@@ -149,9 +149,7 @@ func (c *Ceth) ResolveAddress(address string) (common.Address, error) {
 	if err == nil {
 		return contract.GetAddress(), nil
 	}
-	if strings.HasPrefix(address, "0x") {
-		address = address[2:]
-	}
+	address = strings.TrimPrefix(address, "0x")
 	decoded, err := hex.DecodeString(address)
 	if err != nil {
 		return common.Address{}, err

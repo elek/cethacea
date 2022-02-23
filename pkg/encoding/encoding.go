@@ -102,8 +102,6 @@ func SliceToArray(size int, val []byte) interface{} {
 
 func HexToBytes(data string) ([]byte, error) {
 	data = strings.TrimSpace(data)
-	if strings.HasPrefix(data, "0x") {
-		data = data[2:]
-	}
+	data = strings.TrimPrefix(data, "0x")
 	return hex.DecodeString(data)
 }

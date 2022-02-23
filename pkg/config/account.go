@@ -56,7 +56,6 @@ func NewAccountRepo(selected string) (*AccountRepo, error) {
 				Name:    selected,
 				Private: keyString,
 			})
-			selected = selected
 		}
 
 		_, err := hex.DecodeString(selected)

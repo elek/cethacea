@@ -207,8 +207,8 @@ func init() {
 			}
 			for _, c := range chains {
 				if strings.HasPrefix(c.Name, toComplete) {
+					a = append(a, c.Name)
 				}
-				a = append(a, c.Name)
 			}
 			return a, cobra.ShellCompDirectiveNoFileComp
 		},
@@ -622,7 +622,7 @@ func query(ceth *Ceth, fs encoding.FunctionSignature, data []byte) error {
 		for _, r := range returned {
 			switch v := r.(type) {
 			case [32]uint8:
-				stringResults = append(stringResults, fmt.Sprintf("%s", hex.EncodeToString(v[:])))
+				stringResults = append(stringResults, hex.EncodeToString(v[:]))
 			default:
 				stringResults = append(stringResults, fmt.Sprintf("%s", r))
 
@@ -670,9 +670,7 @@ func deploy(ceth *Ceth, alias *string, value *string, contractFile string, const
 		return errors.Wrap(err, "Couldn't read file "+contractFile)
 	}
 	code := strings.TrimSpace(string(content))
-	if strings.HasPrefix(code, "0x") {
-		code = code[2:]
-	}
+	code = strings.TrimPrefix(code, "0x")
 
 	codeData, err := encoding.HexToBytes(code)
 	if err != nil {

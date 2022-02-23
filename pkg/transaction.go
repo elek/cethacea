@@ -144,7 +144,7 @@ func cancelTx(ceth *Ceth, s string) error {
 		chain.WithGas{Gas: tx.Gas() + 10},
 		chain.WithNonce{Nonce: tx.Nonce()},
 		chain.WithGasFeeCap{Value: new(big.Int).Add(tx.GasTipCap(), big.NewInt(10))},
-		chain.WithGasTipCap{new(big.Int).Add(tx.GasTipCap(), big.NewInt(10))})
+		chain.WithGasTipCap{Value: new(big.Int).Add(tx.GasTipCap(), big.NewInt(10))})
 	if err != nil {
 		return err
 	}

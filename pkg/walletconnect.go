@@ -171,9 +171,7 @@ func walletConnect(ceth *Ceth, wcUrl string) error {
 				value = params["value"].(string)
 			}
 			if value != "" {
-				if strings.HasPrefix(value, "0x") {
-					value = value[2:]
-				}
+				value = strings.TrimPrefix(value, "0x")
 				parsedValue, ok := new(big.Int).SetString(value, 16)
 				if !ok {
 					return nil, errors.New("Couldn't parse value: " + value)
@@ -198,9 +196,8 @@ func walletConnect(ceth *Ceth, wcUrl string) error {
 		case "personal_sign":
 			params := jsonRPC.Params.([]interface{})
 			hexMessage := params[0].(string)
-			if strings.HasPrefix(hexMessage, "0x") {
-				hexMessage = hexMessage[2:]
-			}
+
+			hexMessage = strings.TrimPrefix(hexMessage[2:], "0x")
 			message, err := hex.DecodeString(hexMessage)
 			if err != nil {
 				return nil, err
@@ -275,12 +272,8 @@ func walletConnect(ceth *Ceth, wcUrl string) error {
 		return err
 	}
 
-	for {
-		select {
-		case <-done:
-			return nil
-		}
-	}
+	<-done
+	return nil
 }
 
 func personalSign(message []byte, key *ecdsa.PrivateKey) ([]byte, error) {

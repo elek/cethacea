@@ -1,4 +1,2 @@
-default: one
-cubes:
-  - name: one
-    asd: 1
+- name: one
+  asd: 1
