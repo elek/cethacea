@@ -3,8 +3,10 @@ package cethacea
 import (
 	"context"
 	"fmt"
+	"github.com/elek/cethacea/pkg/chain"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/fatih/color"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"math/big"
 	"time"
@@ -64,7 +66,67 @@ func init() {
 		blockCmd.AddCommand(&blockWatchCmd)
 
 	}
+	{
+
+		blockAt := cobra.Command{
+			Use:   "at",
+			Short: "Find block at a specific time",
+		}
+		blockAt.RunE = func(cmd *cobra.Command, args []string) error {
+			ceth, err := NewCethContext(&Settings)
+			if err != nil {
+				return err
+			}
+			return findBlockAt(ceth, args[0])
+		}
+		blockCmd.AddCommand(&blockAt)
+
+	}
 	RootCmd.AddCommand(&blockCmd)
+}
+
+func findBlockAt(ceth *Ceth, s string) error {
+	ctx := context.Background()
+
+	point := time.Now().Add(-356 * 24 * time.Hour)
+
+	client, err := ceth.GetChainClient()
+	ethClient := client.(*chain.Eth)
+	if err != nil {
+		return err
+	}
+
+	first := big.NewInt(0)
+	lastBlock, err := ethClient.Client.BlockByNumber(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	last := lastBlock.Number()
+
+	for {
+		diff := new(big.Int).Sub(last, first).Int64()
+		if diff == int64(1) {
+			break
+		}
+		log.Debug().Int64("diff", diff).Msg("binary search for block")
+		middle := new(big.Int).Div(new(big.Int).Add(last, first), big.NewInt(2))
+		middleBlock, err := ethClient.Client.BlockByNumber(ctx, middle)
+		if err != nil {
+			return err
+		}
+		if middleBlock.ReceivedAt.Before(point) {
+			first = middleBlock.Number()
+		} else {
+			last = middleBlock.Number()
+		}
+	}
+	selected, err := ethClient.Client.BlockByNumber(ctx, last)
+	if err != nil {
+		return err
+	}
+	fmt.Println(selected.Number())
+	return nil
 }
 
 func watchBlocks(ceth *Ceth) error {
