@@ -15,7 +15,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"math/big"
@@ -397,7 +396,7 @@ func switchContract(ceth *Ceth, s string, all bool) error {
 		if err != nil {
 			return err
 		}
-		var filtered []types.Contract
+		var filtered []*types.Contract
 		for _, c := range contracts {
 			if all || (c.ChainID == 0 || c.ChainID == chainID) {
 				filtered = append(filtered, c)
@@ -449,7 +448,6 @@ func listLogs(ceth *Ceth, limit uint64, raw bool, all bool, format string, topic
 	if err != nil {
 		return err
 	}
-
 	c, err := ceth.GetClient()
 	if err != nil {
 		return err
@@ -459,7 +457,7 @@ func listLogs(ceth *Ceth, limit uint64, raw bool, all bool, format string, topic
 
 	head, err := c.Client.BlockNumber(ctx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	until := head
@@ -469,24 +467,29 @@ func listLogs(ceth *Ceth, limit uint64, raw bool, all bool, format string, topic
 				contract.GetAddress(),
 			},
 		}
+		q.ToBlock = big.NewInt(int64(until))
 		if limit != 0 {
-			q.ToBlock = big.NewInt(int64(until))
-			q.FromBlock = big.NewInt(int64(until - limit))
+			if limit > until {
+				q.FromBlock = big.NewInt(0)
+			} else {
+				q.FromBlock = big.NewInt(int64(until - limit))
+			}
+
 		}
 
-		q.Topics = make([][]common.Hash, 4)
-		if topic0 != "" {
-			q.Topics[0] = []common.Hash{common.HexToHash(topic0)}
-		}
-		if topic1 != "" {
-			q.Topics[1] = []common.Hash{common.HexToHash(topic1)}
-		}
-		if topic2 != "" {
-			q.Topics[2] = []common.Hash{common.HexToHash(topic2)}
-		}
-		if topic3 != "" {
-			q.Topics[3] = []common.Hash{common.HexToHash(topic3)}
-		}
+		//q.Topics = make([][]common.Hash, 4)
+		//if topic0 != "" {
+		//	q.Topics[0] = []common.Hash{common.HexToHash(topic0)}
+		//}
+		//if topic1 != "" {
+		//	q.Topics[1] = []common.Hash{common.HexToHash(topic1)}
+		//}
+		//if topic2 != "" {
+		//	q.Topics[2] = []common.Hash{common.HexToHash(topic2)}
+		//}
+		//if topic3 != "" {
+		//	q.Topics[3] = []common.Hash{common.HexToHash(topic3)}
+		//}
 
 		logs, err := c.Client.FilterLogs(ctx, q)
 		if err != nil {
@@ -597,21 +600,26 @@ func query(ceth *Ceth, fs encoding.FunctionSignature, data []byte) error {
 
 	ctx := context.Background()
 
-	account, contract, client, err := ceth.AccountContractClient()
+	account, err := ceth.AccountRepo.GetCurrentAccount()
 	if err != nil {
 		return err
 	}
-	address := contract.GetAddress()
-	msg := ethereum.CallMsg{
-		From: account.Address(),
-		To:   &address,
-		Data: data,
-	}
-	log.Debug().Hex("data", data).Hex("to", address.Bytes()).Hex("from", account.Address().Bytes()).Msg("CallContract")
-	res, err := client.Client.CallContract(ctx, msg, nil)
+
+	contract, err := ceth.ContractRepo.GetCurrentContract()
 	if err != nil {
-		return errors.Wrap(err, "CallContract is failed")
+		return err
 	}
+
+	chainClient, err := ceth.GetChainClient()
+	if err != nil {
+		return err
+	}
+
+	res, err := chainClient.SendQuery(ctx, account.Address(), contract.GetAddress(), chain.WithData{Data: data})
+	if err != nil {
+		return err
+	}
+
 	if fs.Outputs != nil && len(fs.Outputs) > 0 {
 		returned, err := fs.Outputs.Unpack(res)
 		if err != nil {
@@ -719,6 +727,7 @@ func deploy(ceth *Ceth, alias *string, value *string, contractFile string, const
 			Name:    *alias,
 			Address: receipt.ContractAddress.Hex(),
 			ChainID: chainID.Int64(),
+			Abi:     ceth.Settings.Abi,
 		})
 		if err != nil {
 			return err

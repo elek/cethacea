@@ -160,7 +160,7 @@ func listBlocks(ceth *Ceth, limit uint64) error {
 	if err != nil {
 		return err
 	}
-	for b := lastBlock; b > lastBlock-limit; b-- {
+	for b := lastBlock; b+limit > lastBlock; b-- {
 		block, err := client.Client.BlockByNumber(ctx, big.NewInt(int64(b)))
 		if err != nil {
 			return err

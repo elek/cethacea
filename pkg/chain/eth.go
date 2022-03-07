@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/elek/cethacea/pkg/types"
+	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
 
 	"github.com/elek/cethacea/pkg/encoding"
@@ -27,8 +28,44 @@ func (c *Eth) GetAccountInfo(ctx context.Context, account common.Address) (types
 	panic("implement me")
 }
 
-func (c *Eth) SendQuery(ctx context.Context, from types.Account, to common.Address, options ...interface{}) ([]interface{}, error) {
-	panic("implement me")
+func (c *Eth) SendQuery(ctx context.Context, sender common.Address, to common.Address, options ...interface{}) ([]byte, error) {
+
+	data := []byte{}
+
+	for _, option := range options {
+		switch o := option.(type) {
+		case WithData:
+			data = o.Data
+		default:
+			return nil, errors.Errorf("unsupported option %v", o)
+		}
+	}
+	msg := ethereum.CallMsg{
+		From: sender,
+		To:   &to,
+		Data: data,
+	}
+
+	res, err := c.Client.CallContract(ctx, msg, nil)
+	if err != nil {
+		log.Debug().
+			Err(err).
+			Hex("data", data).
+			Hex("to", to.Bytes()).
+			Hex("from", sender.Bytes()).
+			Msg("CallContract")
+		return nil, errors.Wrap(err, "CallContract is failed")
+	}
+
+	log.Debug().
+		Err(err).
+		Hex("data", data).
+		Hex("to", to.Bytes()).
+		Hex("from", sender.Bytes()).
+		Hex("response", res).
+		Msg("CallContract")
+
+	return res, nil
 }
 
 var _ ChainClient = &Eth{}
@@ -57,16 +94,10 @@ func (c *Eth) Query(ctx context.Context, resolver types.AddressResolver, sender 
 	if err != nil {
 		return nil, err
 	}
-	msg := ethereum.CallMsg{
-		From: sender,
-		To:   &contract,
-		Data: data,
-	}
-	res, err := c.Client.CallContract(ctx, msg, nil)
+	res, err := c.SendQuery(ctx, sender, contract, WithData{Data: data})
 	if err != nil {
-		return nil, errors.Wrap(err, "CallContract is failed")
+		return nil, err
 	}
-
 	values, err := fs.Outputs.Unpack(res)
 	if err != nil {
 		return nil, err

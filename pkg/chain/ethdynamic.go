@@ -53,6 +53,7 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		return hash, errors.Wrap(err, "Couldn't sign the transaction")
 	}
 	log.Debug().
+		Hex("from", sender.Address().Bytes()).
 		Str("to", optionalAddress(signedTx.To())).
 		Str("value", signedTx.Value().String()).
 		Str("data", hex.EncodeToString(signedTx.Data())).

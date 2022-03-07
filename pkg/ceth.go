@@ -180,7 +180,8 @@ func (c *Ceth) getCurrentChainID() (int64, error) {
 }
 
 func (c *Ceth) SetDefaultAccount(s string) error {
-	c.Settings.Contract = s
+	c.Settings.Account = s
+	c.AccountRepo.Selected = s
 	return config.ChangeKey(".ceth.yaml", "account", s)
 }
 

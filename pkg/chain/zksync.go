@@ -138,10 +138,10 @@ func (c *ZkSync) SendTransaction(ctx context.Context, from types.Account, to *co
 }
 
 func (c *ZkSync) TokenInfo(ctx context.Context, token common.Address) (types.Item, error) {
-
 	panic("implement me")
 }
 
-func (c *ZkSync) SendQuery(ctx context.Context, from types.Account, to common.Address, options ...interface{}) ([]interface{}, error) {
+func (c *ZkSync) SendQuery(ctx context.Context, from common.Address, to common.Address, options ...interface{}) ([]byte, error) {
+	//TODO implement me
 	panic("implement me")
 }

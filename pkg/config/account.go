@@ -61,8 +61,8 @@ func NewAccountRepo(selected string) (*AccountRepo, error) {
 		_, err := hex.DecodeString(selected)
 		if err == nil {
 			accounts = append(accounts, types.Account{
-				Name:    "<pk>",
-				Private: "0x" + selected,
+				Name:   "<pk>",
+				Public: selected,
 			})
 			selected = "<pk>"
 		}
@@ -71,8 +71,8 @@ func NewAccountRepo(selected string) (*AccountRepo, error) {
 			_, err := hex.DecodeString(selected[2:])
 			if err == nil {
 				accounts = append(accounts, types.Account{
-					Name:    "<pk>",
-					Private: "0x" + selected,
+					Name:   "<pk>",
+					Public: selected[2:],
 				})
 				selected = "<pk>"
 			}

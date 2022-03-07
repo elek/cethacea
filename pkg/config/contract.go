@@ -12,13 +12,13 @@ import (
 const DefaultContractFile = ".contracts.yaml"
 
 type ContractRepo struct {
-	Contracts  []types.Contract
+	Contracts  []*types.Contract
 	Selected   string
 	DefaultAbi string
 }
 
 func NewContractRepo(selected string, abi string, all bool) (*ContractRepo, error) {
-	var contracts []types.Contract
+	var contracts []*types.Contract
 
 	err := LoadYamlConfig(DefaultContractFile, "contracts", &contracts)
 	if err != nil {
@@ -33,7 +33,7 @@ func NewContractRepo(selected string, abi string, all bool) (*ContractRepo, erro
 
 		_, err := hex.DecodeString(selected)
 		if err == nil {
-			contracts = append(contracts, types.Contract{
+			contracts = append(contracts, &types.Contract{
 				Name:    "<contract>",
 				Address: "0x" + selected,
 				Abi:     abi,
@@ -44,7 +44,7 @@ func NewContractRepo(selected string, abi string, all bool) (*ContractRepo, erro
 		if strings.HasPrefix(selected, "0x") {
 			_, err := hex.DecodeString(selected[2:])
 			if err == nil {
-				contracts = append(contracts, types.Contract{
+				contracts = append(contracts, &types.Contract{
 					Name:    "<contract>",
 					Address: selected,
 					Abi:     abi,
@@ -62,17 +62,35 @@ func NewContractRepo(selected string, abi string, all bool) (*ContractRepo, erro
 	}, nil
 }
 
-func (c ContractRepo) ListContracts() ([]types.Contract, error) {
+func (c ContractRepo) ListContracts() ([]*types.Contract, error) {
 	return c.Contracts, nil
 }
 
 func (c ContractRepo) AddContract(contract types.Contract) error {
-	var contracts []types.Contract
+	var contracts []*types.Contract
 	err := LoadYamlConfig(DefaultContractFile, "contracts", &contracts)
 	if err != nil {
 		return err
 	}
-	contracts = append(contracts, contract)
+
+	updated := false
+	for _, existing := range contracts {
+		if existing.Name == contract.Name {
+			existing.Address = contract.Address
+			if contract.Abi != "" {
+				existing.Abi = contract.Abi
+			}
+			if contract.ChainID != 0 {
+				existing.ChainID = contract.ChainID
+			}
+			updated = true
+			break
+		}
+	}
+
+	if !updated {
+		contracts = append(contracts, &contract)
+	}
 	return SaveYamlConfig(DefaultContractFile, &contracts)
 }
 
@@ -82,7 +100,7 @@ func (c ContractRepo) GetContract(name string) (types.Contract, error) {
 			if c.DefaultAbi != "" {
 				contract.Abi = c.DefaultAbi
 			}
-			return contract, nil
+			return *contract, nil
 		}
 	}
 	return types.Contract{}, errors.New(fmt.Sprintf("Contract '%s' is not found", name))
