@@ -38,6 +38,22 @@ func init() {
 	}
 	{
 		cmd := cobra.Command{
+			Use:   "transfer",
+			Short: "Transfer tokens",
+			Args:  cobra.ExactArgs(2),
+		}
+		cmd.RunE = func(cmd *cobra.Command, args []string) error {
+			ceth, err := NewCethContext(&Settings)
+			if err != nil {
+				return err
+			}
+
+			return tokenTransfer(ceth, args[0], args[1])
+		}
+		tokenCmd.AddCommand(&cmd)
+	}
+	{
+		cmd := cobra.Command{
 			Use:   "info",
 			Short: "Show basic information from the token",
 		}

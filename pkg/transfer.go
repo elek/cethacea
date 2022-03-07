@@ -17,14 +17,10 @@ func init() {
 		Short:   "transfer native token or token to other address",
 		Args:    cobra.ExactArgs(2),
 	}
-	erc20 := transferCmd.Flags().Bool("erc20", false, "Get erc20 balance instead of native balance")
 	transferCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		ceth, err := NewCethContext(&Settings)
 		if err != nil {
 			return err
-		}
-		if *erc20 {
-			return transfer(ceth, args[0], args[1])
 		}
 		return nativeTransfer(ceth, args[0], args[1])
 	}
@@ -53,7 +49,7 @@ func nativeTransfer(ceth *Ceth, amount string, to string) error {
 	return err
 }
 
-func transfer(ceth *Ceth, amount string, to string) error {
+func tokenTransfer(ceth *Ceth, amount string, to string) error {
 	ctx := context.Background()
 	account, contract, client, err := ceth.AccountContractClient()
 	if err != nil {
