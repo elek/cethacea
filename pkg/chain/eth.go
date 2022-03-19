@@ -222,6 +222,10 @@ func (c *Eth) GetTransaction(ctx context.Context, hash common.Hash) (types.Item,
 					Value: tx.Type(),
 				},
 				{
+					Name:  "nonce",
+					Value: tx.Nonce(),
+				},
+				{
 					Name:  "data",
 					Value: hex.EncodeToString(tx.Data()),
 				},
