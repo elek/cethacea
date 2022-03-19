@@ -53,21 +53,35 @@ func init() {
 			Use:   "keccak <number>",
 			Short: "Calculate hash of keccak",
 			Args:  cobra.ExactArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
+		}
+		input := cmd.Flags().String("input", "string", "The interpretation of input string (string,decimal,hex)")
+		cmd.RunE = func(cmd *cobra.Command, args []string) error {
+			var v []byte
+			switch *input {
+			case "hex":
+				var err error
+				v, err = hex.DecodeString(args[0])
+				if err != nil {
+					return err
+				}
+			case "string":
+				v = []byte(args[0])
+			case "decimal":
 				value, ok := new(big.Int).SetString(args[0], 10)
 				if !ok {
 					return fmt.Errorf("couldn't convert %s to number", args[0])
 				}
-				v := make([]byte, 32)
+				v = make([]byte, 32)
 				for i := 31; i >= 0; i-- {
 					if 31-i <= len(value.Bytes())-1 {
 						v[i] = value.Bytes()[len(value.Bytes())-1-31+i]
 					}
 				}
-				hash := crypto.Keccak256(v)
-				fmt.Println(hex.EncodeToString(hash))
-				return nil
-			},
+			}
+
+			hash := crypto.Keccak256(v)
+			fmt.Println(hex.EncodeToString(hash))
+			return nil
 		}
 		utilCmd.AddCommand(&cmd)
 	}
