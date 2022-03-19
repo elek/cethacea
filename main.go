@@ -2,6 +2,7 @@ package main
 
 import (
 	cethacea "github.com/elek/cethacea/pkg"
+	_ "github.com/elek/cethacea/pkg/evm"
 	"github.com/spf13/viper"
 	"log"
 )
