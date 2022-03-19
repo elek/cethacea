@@ -424,7 +424,10 @@ func listContracts(ceth *Ceth, all bool) error {
 	if err != nil {
 		return err
 	}
-	curr := ceth.Settings.Contract
+	curr, err := ceth.GetCurrentContract()
+	if err != nil {
+		return err
+	}
 
 	chainID, err := ceth.getCurrentChainID()
 	if err != nil {
@@ -433,7 +436,7 @@ func listContracts(ceth *Ceth, all bool) error {
 
 	for _, a := range contracts {
 		marker := " "
-		if a.Name == curr {
+		if a.Name == curr.Name {
 			marker = "*"
 		}
 		if all || (a.ChainID == 0 || a.ChainID == chainID) {
