@@ -32,8 +32,30 @@ func NewChainRepo(selected string) (*ChainRepo, error) {
 			Name:   "<chain>",
 			RPCURL: selected,
 		})
-		selected = "<chain>"
+
+		return &ChainRepo{
+			Chains:     chains,
+			Selected:   "<chain>",
+			ConfigFile: config,
+		}, nil
 	}
+
+	chainEnv := os.Getenv("CETH_CHAIN")
+	if chainEnv != "" {
+		if strings.HasPrefix(chainEnv, "http") || strings.HasPrefix(chainEnv, "ws") {
+			chains = append(chains, types.ChainConfig{
+				Name:   "CETH_CHAIN",
+				RPCURL: chainEnv,
+			})
+			selected = "CETH_CHAIN"
+		}
+		for _, c := range chains {
+			if c.Name == chainEnv {
+				selected = chainEnv
+			}
+		}
+	}
+
 	if selected == "" {
 		selected = "default"
 	}
