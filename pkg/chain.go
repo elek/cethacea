@@ -7,6 +7,7 @@ import (
 	"github.com/elek/cethacea/pkg/types"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/spf13/cobra"
+	"regexp"
 	"strings"
 )
 
@@ -177,9 +178,18 @@ func listChain(ceth *Ceth) error {
 			def.Name {
 			marker = "*"
 		}
-		fmt.Println(marker + c.Name + " " + c.RPCURL)
+		fmt.Println(marker + c.Name + " " + maskUrl(c))
 	}
 	return nil
+}
+
+func maskUrl(c types.ChainConfig) string {
+	url := c.RPCURL
+	if strings.Contains(url, "infura.io") {
+		re, _ := regexp.Compile("/v3/[0-9a-zA-Z]+")
+		url = re.ReplaceAllString(url, "/v3/*********")
+	}
+	return url
 }
 
 func addChain(ceth *Ceth, name string, url string) error {
