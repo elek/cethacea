@@ -57,7 +57,7 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		Str("to", optionalAddress(signedTx.To())).
 		Str("value", signedTx.Value().String()).
 		Str("data", hex.EncodeToString(signedTx.Data())).
-		Msg("Sending transaction")
+		Msg("eth_sendRawTransaction")
 
 	err = c.Client.SendTransaction(ctx, signedTx)
 	if err != nil {
