@@ -174,16 +174,16 @@ func submit(ceth *Ceth, value string, to string, data string) error {
 		return err
 	}
 
+	toAddress, err := ceth.ResolveAddress(to)
+	if err != nil {
+		return err
+	}
+
 	account, err := ceth.AccountRepo.GetCurrentAccount()
 	if err != nil {
 		return err
 	}
 
-	var toAddress *common.Address
-	if to != "" {
-		addr := common.HexToAddress(to)
-		toAddress = &addr
-	}
 	var opts []interface{}
 	if data != "" {
 		hexData, err := encoding.HexToBytes(data)
@@ -199,7 +199,7 @@ func submit(ceth *Ceth, value string, to string, data string) error {
 			Value: v,
 		})
 	}
-	tx, err := client.SendTransaction(ctx, account, toAddress, opts...)
+	tx, err := client.SendTransaction(ctx, account, &toAddress, opts...)
 	if err != nil {
 		return err
 	}

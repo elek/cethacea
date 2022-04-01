@@ -3,7 +3,6 @@ package chain
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"github.com/elek/cethacea/pkg/types"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
@@ -234,7 +233,7 @@ func (c *Eth) GetTransaction(ctx context.Context, hash common.Hash) (types.Item,
 
 	receipt, err := c.Client.TransactionReceipt(ctx, hash)
 	if err != nil {
-		fmt.Println("Couldn't read transaction receipt: " + err.Error())
+		return i, err
 	} else {
 		i.Record.Fields = append(i.Record.Fields, []types.Field{
 			{

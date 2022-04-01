@@ -58,13 +58,27 @@ func NewAccountRepo(selected string) (*AccountRepo, error) {
 			})
 		}
 
-		_, err := hex.DecodeString(selected)
+		_, err := hex.DecodeString(strings.TrimPrefix(strings.ToLower(selected), "0x"))
 		if err == nil {
-			accounts = append(accounts, types.Account{
-				Name:   "<pk>",
-				Public: selected,
-			})
-			selected = "<pk>"
+
+			found := false
+			//it's a hex can be a private key or a public key
+			for _, a := range accounts {
+				if strings.Trim(strings.ToLower(a.Address().String()), "0x") == strings.Trim(strings.ToLower(selected), "0x") {
+					selected = a.Name
+					found = true
+					break
+				}
+			}
+
+			if !found {
+
+				accounts = append(accounts, types.Account{
+					Name:   "<pk>",
+					Public: selected,
+				})
+				selected = "<pk>"
+			}
 		}
 
 		if strings.HasPrefix(selected, "0x") {
