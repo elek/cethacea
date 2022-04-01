@@ -477,7 +477,6 @@ func listLogs(ceth *Ceth, limit uint64, raw bool, all bool, format string, topic
 			} else {
 				q.FromBlock = big.NewInt(int64(until - limit))
 			}
-
 		}
 
 		//q.Topics = make([][]common.Hash, 4)

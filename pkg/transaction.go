@@ -211,6 +211,6 @@ func submit(ceth *Ceth, value string, to string, data string) error {
 		}
 		time.Sleep(1 * time.Second)
 	}
-	return fmt.Errorf("Submitted transaction couldn't been retrieved")
+	return fmt.Errorf("submitted transaction couldn't been retrieved")
 
 }

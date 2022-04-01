@@ -58,7 +58,6 @@ func (c *Eth) SendQuery(ctx context.Context, sender common.Address, to common.Ad
 	}
 
 	log.Debug().
-		Err(err).
 		Hex("data", data).
 		Hex("to", to.Bytes()).
 		Hex("from", sender.Bytes()).
