@@ -47,7 +47,6 @@ func init() {
 			default:
 				return errs.Errorf("No such compiler %s. Use yulc or internal.", *compiler)
 			}
-			return disasm(args[0])
 		}
 		evmCmd.AddCommand(&cmd)
 	}

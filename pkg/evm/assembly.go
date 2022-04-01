@@ -3,7 +3,6 @@ package evm
 import (
 	"bytes"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeebo/errs/v2"
@@ -125,7 +124,7 @@ func (c *Compiler) processLine(line string, resolve bool) ([]byte, error) {
 	res = append(res, byte(op))
 	if op.IsPush() {
 		if len(parts) != 2 {
-			return nil, errors.New("PUSH operation require parameters: " + line)
+			return nil, errs.Errorf("PUSH operation require parameters: " + line)
 		}
 		pushSize := int(byte(op)-0x60) + 1
 		hexString := parts[1]
@@ -145,7 +144,7 @@ func (c *Compiler) processLine(line string, resolve bool) ([]byte, error) {
 			} else {
 				position, found := addressTable[symbol]
 				if !found {
-					return nil, errors.New("Instruction to non existent label: " + hexString)
+					return nil, errs.Errorf("Instruction to non existent label: " + hexString)
 				}
 				intBytes, err := intInBytes(position, pushSize)
 				if err != nil {
@@ -155,16 +154,14 @@ func (c *Compiler) processLine(line string, resolve bool) ([]byte, error) {
 
 			}
 		} else {
-			if strings.HasPrefix(hexString, "0x") {
-				hexString = hexString[2:]
-			}
+			hexString = strings.TrimPrefix(hexString, "0x")
 			param, err := hex.DecodeString(hexString)
 			if err != nil {
 				return nil, err
 			}
 
 			if len(param) != pushSize {
-				return nil, errors.New(fmt.Sprintf("%s operation requires %d bytes long parameter", op.String(), pushSize))
+				return nil, errs.Errorf(fmt.Sprintf("%s operation requires %d bytes long parameter", op.String(), pushSize))
 			}
 			res = append(res, param...)
 		}
@@ -180,7 +177,7 @@ func intInBytes(position int, size int) ([]byte, error) {
 		position = position / 256
 	}
 	if position != 0 {
-		return nil, errors.New(fmt.Sprintf("jumping to %d position doesn't fit in byte %d", orig, size))
+		return nil, errs.Errorf(fmt.Sprintf("jumping to %d position doesn't fit in byte %d", orig, size))
 	}
 	return res, nil
 }

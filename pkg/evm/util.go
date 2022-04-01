@@ -6,9 +6,7 @@ import (
 )
 
 func hexToBytes(data string) ([]byte, error) {
-	if strings.HasPrefix(data, "0x") {
-		data = data[2:]
-	}
+	data = strings.TrimPrefix(data, "0x")
 	return hex.DecodeString(data)
 }
 
