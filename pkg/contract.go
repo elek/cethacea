@@ -479,19 +479,19 @@ func listLogs(ceth *Ceth, limit uint64, raw bool, all bool, format string, topic
 			}
 		}
 
-		//q.Topics = make([][]common.Hash, 4)
-		//if topic0 != "" {
-		//	q.Topics[0] = []common.Hash{common.HexToHash(topic0)}
-		//}
-		//if topic1 != "" {
-		//	q.Topics[1] = []common.Hash{common.HexToHash(topic1)}
-		//}
-		//if topic2 != "" {
-		//	q.Topics[2] = []common.Hash{common.HexToHash(topic2)}
-		//}
-		//if topic3 != "" {
-		//	q.Topics[3] = []common.Hash{common.HexToHash(topic3)}
-		//}
+		q.Topics = make([][]common.Hash, 4)
+		if topic0 != "" {
+			q.Topics[0] = []common.Hash{common.HexToHash(topic0)}
+		}
+		if topic1 != "" {
+			q.Topics[1] = []common.Hash{common.HexToHash(topic1)}
+		}
+		if topic2 != "" {
+			q.Topics[2] = []common.Hash{common.HexToHash(topic2)}
+		}
+		if topic3 != "" {
+			q.Topics[3] = []common.Hash{common.HexToHash(topic3)}
+		}
 
 		logs, err := c.Client.FilterLogs(ctx, q)
 		if err != nil {
