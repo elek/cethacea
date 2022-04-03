@@ -167,10 +167,10 @@ func listBlocks(ceth *Ceth, limit uint64) error {
 	if err != nil {
 		return err
 	}
-	for b := lastBlock; b+limit > lastBlock; b-- {
+	for b := lastBlock; b+limit > lastBlock && b > 0; b-- {
 		block, err := client.Client.BlockByNumber(ctx, big.NewInt(int64(b)))
 		if err != nil {
-			return err
+			return errs.Wrap(err)
 		}
 		gasString := fmt.Sprintf("%10d", block.GasUsed())
 		if block.GasUsed() > 15_000_000 {
