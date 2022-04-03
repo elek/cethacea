@@ -41,6 +41,10 @@ func PrintGWei(wei *big.Int) string {
 	return decimal.NewFromBigInt(wei, -9).String()
 }
 
+func PrintEthFromDecimal(dec decimal.Decimal) string {
+	return fmt.Sprintf("%s (%s ETH)", dec.Mul(decimal.New(10, 17)).String(), dec.String())
+}
+
 func PrintRawLog(l ethtypes.Log) {
 	fmt.Println(l.Index)
 	fmt.Println(l.Removed)

@@ -53,7 +53,7 @@ func balance(ceth *Ceth, address string, all bool) error {
 		if err != nil {
 			return errors.Wrap(err, "Couldn't get balance for")
 		}
-		fmt.Println(balance.String())
+		fmt.Println(PrintEthFromDecimal(balance))
 	} else {
 		accounts, err := ceth.AccountRepo.ListAccounts()
 		if err != nil {
@@ -65,7 +65,7 @@ func balance(ceth *Ceth, address string, all bool) error {
 			if err != nil {
 				return errors.Wrap(err, "Couldn't get balance for "+a.Address().String())
 			}
-			fmt.Printf("%s %s\n", a.Name, balance.String())
+			fmt.Printf("%s %s\n", a.Name, PrintEthFromDecimal(balance))
 		}
 	}
 
