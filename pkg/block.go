@@ -31,7 +31,11 @@ func init() {
 			if err != nil {
 				return err
 			}
-			return showBlock(ceth, args[0])
+			hashOrNo := ""
+			if len(args) > 0 {
+				hashOrNo = args[0]
+			}
+			return showBlock(ceth, hashOrNo)
 		}
 		blockCmd.AddCommand(&blockShow)
 
