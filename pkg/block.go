@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/elek/cethacea/pkg/chain"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/zeebo/errs/v2"
 	"math/big"
+	"strings"
 	"time"
 )
 
@@ -20,7 +23,7 @@ func init() {
 	}
 	{
 		blockShow := cobra.Command{
-			Use:   "show",
+			Use:   "show <hashOrNumber>",
 			Short: "Show last mined blocks",
 		}
 		blockShow.RunE = func(cmd *cobra.Command, args []string) error {
@@ -28,7 +31,7 @@ func init() {
 			if err != nil {
 				return err
 			}
-			return showBlock(ceth)
+			return showBlock(ceth, args[0])
 		}
 		blockCmd.AddCommand(&blockShow)
 
@@ -204,19 +207,38 @@ func listBlocks(ceth *Ceth, limit uint64) error {
 
 }
 
-func showBlock(ceth *Ceth) error {
+func showBlock(ceth *Ceth, hashOrNumber string) (err error) {
 	client, err := ceth.GetClient()
 	if err != nil {
 		return err
 	}
+	var block *types.Block
 	ctx := context.Background()
-	block, err := client.Client.BlockByNumber(ctx, nil)
-	if err != nil {
-		return err
+	if hashOrNumber == "" {
+		block, err = client.Client.BlockByNumber(ctx, nil)
+		if err != nil {
+			return err
+		}
+	} else if strings.HasPrefix(hashOrNumber, "0x") {
+		block, err = client.Client.BlockByHash(ctx, common.HexToHash(hashOrNumber))
+		if err != nil {
+			return err
+		}
+	} else {
+		bn, ok := big.NewInt(0).SetString(hashOrNumber, 10)
+		if !ok {
+			return errs.Errorf("Couldn't convert to big number. To use hex please prefix it with 0x")
+		}
+		block, err = client.Client.BlockByNumber(ctx, bn)
+		if err != nil {
+			return err
+		}
 	}
+
+	created := time.Unix(int64(block.Header().Time), 0)
 	fmt.Printf("%-15s %s\n", "Block:", block.Hash())
 	fmt.Printf("%-15s %d\n", "Block#:", block.Number())
-	fmt.Printf("%-15s %s\n", "Received at:", block.ReceivedAt.Format(time.RFC3339))
+	fmt.Printf("%-15s %s\n", "Time:", created.Format(time.RFC3339))
 	fmt.Printf("%-15s %d\n", "Gas used:", block.GasUsed())
 	fmt.Printf("%-15s %d\n", "Base fee:", block.BaseFee())
 	fmt.Printf("%-15s %d\n", "Tx#:", len(block.Transactions()))
