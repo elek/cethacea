@@ -72,13 +72,14 @@ func init() {
 		value := txSubmitCmd.Flags().String("value", "", "Value of the transaction")
 		data := txSubmitCmd.Flags().String("data", "", "Hex data of the transaction")
 		to := txSubmitCmd.Flags().String("to", "", "Target address of the transaction")
+		gasTipCap := txSubmitCmd.Flags().Int64("gas-tip-cap", 0, "Gas tip cap used in the transaction (0=use the node oracle)")
 		txSubmitCmd.RunE = func(cmd *cobra.Command, args []string) error {
 			ceth, err := NewCethContext(&Settings)
 			if err != nil {
 				return err
 			}
 
-			return submit(ceth, *value, *to, *data)
+			return submit(ceth, *value, *to, *data, *gasTipCap)
 		}
 		txCommand.AddCommand(&txSubmitCmd)
 	}
@@ -165,7 +166,7 @@ func showTx(ceth *Ceth, s string, format string) error {
 	return PrintItem(tx, format)
 }
 
-func submit(ceth *Ceth, value string, to string, data string) error {
+func submit(ceth *Ceth, value string, to string, data string, gasTipCap int64) error {
 	ctx := context.Background()
 
 	client, err := ceth.GetChainClient()
@@ -195,6 +196,12 @@ func submit(ceth *Ceth, value string, to string, data string) error {
 		}
 		opts = append(opts, chain.WithData{Data: hexData})
 	}
+	if gasTipCap != 0 {
+		opts = append(opts, chain.WithGasTipCap{
+			Value: big.NewInt(gasTipCap),
+		})
+	}
+
 	if value != "" {
 		v := new(big.Int)
 		v.SetString(value, 10)

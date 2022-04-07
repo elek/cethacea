@@ -39,13 +39,14 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		Nonce:     nonce,
 		Gas:       8000000,
 		GasTipCap: tip,
-		GasFeeCap: new(big.Int).Mul(baseGas, big.NewInt(2)),
 	}
 
 	err = optionForDynamicTx(&tx, opts...)
 	if err != nil {
 		return hash, err
 	}
+
+	tx.GasFeeCap = new(big.Int).Add(new(big.Int).Mul(baseGas, big.NewInt(2)), tx.GasTipCap)
 
 	newTx := ethtypes.NewTx(&tx)
 	signedTx, err := ethtypes.SignTx(newTx, ethtypes.NewLondonSigner(chainID), sender.PrivateKey())
@@ -57,6 +58,8 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		Str("to", optionalAddress(signedTx.To())).
 		Str("value", signedTx.Value().String()).
 		Str("data", hex.EncodeToString(signedTx.Data())).
+		Int64("gasTipCap", signedTx.GasTipCap().Int64()).
+		Int64("gasFeeCap", signedTx.GasFeeCap().Int64()).
 		Msg("eth_sendRawTransaction")
 
 	err = c.Client.SendTransaction(ctx, signedTx)
@@ -76,6 +79,10 @@ func optionForDynamicTx(tx *ethtypes.DynamicFeeTx, opts ...interface{}) error {
 			tx.Value = o.Value
 		case WithNonce:
 			tx.Nonce = o.Nonce
+		case WithGasTipCap:
+			tx.GasTipCap = o.Value
+		case WithGasFeeCap:
+			tx.GasFeeCap = o.Value
 		case WithGas:
 			tx.Gas = o.Gas
 		default:
