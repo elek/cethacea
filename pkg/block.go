@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/zeebo/errs/v2"
 	"math/big"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -52,7 +53,11 @@ func init() {
 			if err != nil {
 				return err
 			}
-			return listBlocks(ceth, limit)
+			from := ""
+			if len(args) > 1 {
+				from = args[0]
+			}
+			return listBlocks(ceth, limit, from)
 		}
 		blockCmd.AddCommand(&blockListCmd)
 
@@ -157,16 +162,26 @@ func watchBlocks(ceth *Ceth) error {
 	return nil
 }
 
-func listBlocks(ceth *Ceth, limit uint64) error {
+func listBlocks(ceth *Ceth, limit uint64, from string) error {
 	client, err := ceth.GetClient()
 	if err != nil {
 		return err
 	}
 	ctx := context.Background()
-	lastBlock, err := client.Client.BlockNumber(ctx)
-	if err != nil {
-		return err
+	var lastBlock uint64
+	if from == "" {
+		lastBlock, err = client.Client.BlockNumber(ctx)
+		if err != nil {
+			return err
+		}
+	} else {
+		val, err := strconv.Atoi(from)
+		if err != nil {
+			return err
+		}
+		lastBlock = uint64(val)
 	}
+
 	for b := lastBlock; b+limit > lastBlock && b > 0; b-- {
 		block, err := client.Client.BlockByNumber(ctx, big.NewInt(int64(b)))
 		if err != nil {
