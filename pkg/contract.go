@@ -38,6 +38,7 @@ func init() {
 		raw := deployCmd.Flags().Bool("raw", false, "Use parameter as raw value")
 		file := deployCmd.Flags().StringP("file", "f", "", "File where the data value is read from")
 		value := deployCmd.Flags().String("value", "", "Value to send with the transaction")
+		quiet := deployCmd.Flags().Bool("quiet", false, "Print out only the contract address")
 		contractAlias := deployCmd.Flags().String("name", "", "Local alias to the contract to be persisted with the address.")
 		deployCmd.RunE = func(cmd *cobra.Command, args []string) error {
 			ceth, err := NewCethContext(&Settings)
@@ -51,7 +52,7 @@ func init() {
 					return err
 				}
 			}
-			return deploy(ceth, contractAlias, value, args[0], data)
+			return deploy(ceth, *quiet, contractAlias, value, args[0], data)
 		}
 		contractCmd.AddCommand(&deployCmd)
 
@@ -675,7 +676,7 @@ func call(ceth *Ceth, value *big.Int, data []byte) error {
 
 }
 
-func deploy(ceth *Ceth, alias *string, value *string, contractFile string, constructorArgs []byte) error {
+func deploy(ceth *Ceth, quiet bool, alias *string, value *string, contractFile string, constructorArgs []byte) error {
 	content, err := ioutil.ReadFile(contractFile)
 	if err != nil {
 		return errors.Wrap(err, "Couldn't read file "+contractFile)
@@ -718,9 +719,13 @@ func deploy(ceth *Ceth, alias *string, value *string, contractFile string, const
 		break
 
 	}
-	fmt.Println("Contract: " + receipt.ContractAddress.Hex())
-	fmt.Println("Transaction: " + receipt.TxHash.Hex())
-	fmt.Println()
+	if quiet {
+		fmt.Println(receipt.ContractAddress.Hex())
+	} else {
+		fmt.Println("Contract: " + receipt.ContractAddress.Hex())
+		fmt.Println("Transaction: " + receipt.TxHash.Hex())
+		fmt.Println()
+	}
 	if alias != nil && *alias != "" {
 		chainID, err := client.Client.ChainID(ctx)
 		if err != nil {
