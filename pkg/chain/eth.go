@@ -23,7 +23,17 @@ type Eth struct {
 }
 
 func (c *Eth) GetAccountInfo(ctx context.Context, account common.Address) (types.Item, error) {
-	panic("implement me")
+	i := types.Item{
+		Record: types.Record{
+			Fields: []types.Field{
+				{
+					Name:  "address",
+					Value: account.String(),
+				},
+			},
+		},
+	}
+	return i, nil
 }
 
 func (c *Eth) SendQuery(ctx context.Context, sender common.Address, to common.Address, options ...interface{}) ([]byte, error) {
