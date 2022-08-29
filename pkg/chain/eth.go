@@ -3,17 +3,16 @@ package chain
 import (
 	"context"
 	"encoding/hex"
-	"github.com/elek/cethacea/pkg/types"
-	"github.com/rs/zerolog/log"
-	"github.com/shopspring/decimal"
-
 	"github.com/elek/cethacea/pkg/encoding"
+	"github.com/elek/cethacea/pkg/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
+	"github.com/shopspring/decimal"
 	"math/big"
 	"time"
 )
@@ -160,22 +159,18 @@ func (c *Eth) TokenBalance(ctx context.Context, token common.Address, account co
 	return res[0].(*big.Int), nil
 }
 
-func (c *Eth) TokenInfo(ctx context.Context, token common.Address) (types.Item, error) {
-	r := types.Item{
-		Record: types.Record{
-			Fields: []types.Field{},
-		},
-	}
-
-	res, err := c.Query(ctx, types.WithoutAddressResolution{}, token, token, "symbol()string")
+func (c *Eth) TokenInfo(ctx context.Context, token common.Address) (TokenInfo, error) {
+	t := TokenInfo{}
+	symbol, err := c.Query(ctx, types.WithoutAddressResolution{}, token, token, "symbol()string")
 	if err == nil {
-		r.Record.AddField("symbol", res[0])
+		t.Symbol = symbol[0].(string)
 	}
-	res, err = c.Query(ctx, types.WithoutAddressResolution{}, token, token, "decimals()uint8")
+	dec, err := c.Query(ctx, types.WithoutAddressResolution{}, token, token, "decimals()uint8")
 	if err == nil {
-		r.Record.AddField("decimals", res[0])
+		t.Decimal = dec[0].(uint8)
 	}
-	return r, nil
+	t.Address = token
+	return t, nil
 }
 func (c *Eth) SendTransaction(ctx context.Context, from types.Account, to *common.Address, options ...interface{}) (common.Hash, error) {
 	return c.sendRawTransaction(ctx, from, to, options...)

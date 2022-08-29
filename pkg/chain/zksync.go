@@ -137,7 +137,7 @@ func (c *ZkSync) SendTransaction(ctx context.Context, from types.Account, to *co
 	panic("implement me")
 }
 
-func (c *ZkSync) TokenInfo(ctx context.Context, token common.Address) (types.Item, error) {
+func (c *ZkSync) TokenInfo(ctx context.Context, token common.Address) (TokenInfo, error) {
 	panic("implement me")
 }
 

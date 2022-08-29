@@ -84,7 +84,7 @@ func tokenInfo(ceth *Ceth, format string) error {
 	if err != nil {
 		return err
 	}
-	return PrintItem(info, format)
+	return PrintStruct(info, format)
 }
 
 func tokenBalance(ceth *Ceth, address string, raw bool, all bool) error {
@@ -119,8 +119,8 @@ func tokenBalance(ceth *Ceth, address string, raw bool, all bool) error {
 		if err != nil {
 			return err
 		}
-		decimals = info.GetUint8("decimals")
-		symbol = info.GetString("symbol")
+		decimals = info.Decimal
+		symbol = info.Symbol
 	}
 
 	amount, err := c.TokenBalance(ctx, contract.GetAddress(), target)

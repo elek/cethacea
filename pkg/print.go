@@ -10,6 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 	"math/big"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -53,6 +54,34 @@ func PrintRawLog(l ethtypes.Log) {
 	}
 	fmt.Println(hex.EncodeToString(l.Data))
 	fmt.Println()
+}
+
+func PrintStruct(str interface{}, format string) error {
+	v := reflect.ValueOf(str)
+
+	switch format {
+	case "json":
+		fmt.Println("not implemented yet")
+	case "csv":
+		fmt.Println("not implemented yet")
+	case "table":
+		fmt.Println("not implemented yet")
+	default:
+		maxKeyLength := 0
+		structType := v.Type()
+		for i := 0; i < v.NumField(); i++ {
+			if len(structType.Field(i).Name) > maxKeyLength {
+				maxKeyLength = len(structType.Field(i).Name)
+			}
+		}
+		for i := 0; i < v.NumField(); i++ {
+			fmt.Printf("%-"+strconv.Itoa(maxKeyLength+1)+"s %v\n", structType.Field(i).Name+":", v.Field(i).Interface())
+		}
+
+		fmt.Println()
+	}
+
+	return nil
 }
 
 func PrintItem(item types.Item, format string) error {
