@@ -63,6 +63,7 @@ func NewAccountRepo(selected string) (*AccountRepo, error) {
 
 			found := false
 			//it's a hex can be a private key or a public key
+			// choose from predefined keys
 			for _, a := range accounts {
 				if strings.Trim(strings.ToLower(a.Address().String()), "0x") == strings.Trim(strings.ToLower(selected), "0x") {
 					selected = a.Name
@@ -72,6 +73,15 @@ func NewAccountRepo(selected string) (*AccountRepo, error) {
 			}
 
 			if !found {
+				// is it a private key?
+				_, err = crypto.HexToECDSA(selected)
+				if err == nil {
+					accounts = append(accounts, types.Account{
+						Name:    "<pk>",
+						Private: selected,
+					})
+					selected = "<pk>"
+				}
 
 				accounts = append(accounts, types.Account{
 					Name:   "<pk>",
