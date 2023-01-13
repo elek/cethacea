@@ -112,12 +112,8 @@ func (c *Eth) Query(ctx context.Context, resolver types.AddressResolver, sender 
 	return values, nil
 }
 
-func (c *Eth) SubmitTx(ctx context.Context, sender types.Account, to *common.Address, opts ...interface{}) (common.Hash, error) {
-	if !c.legacy {
-		return c.sendRawTransaction(ctx, sender, to, opts...)
-	} else {
-		return c.sendRawLegacyTx(ctx, sender, to, opts...)
-	}
+func (c *Eth) SendTransaction(ctx context.Context, from types.Account, to *common.Address, options ...interface{}) (common.Hash, error) {
+	return c.sendRawTransaction(ctx, from, to, options...)
 }
 
 func (c *Eth) Call(ctx context.Context, sender types.Account, contract common.Address, function string, argTypes abi.Arguments, args ...interface{}) (*ethtypes.Receipt, error) {
@@ -181,9 +177,6 @@ func (c *Eth) TokenInfo(ctx context.Context, token common.Address) (TokenInfo, e
 	}
 	t.Address = token
 	return t, nil
-}
-func (c *Eth) SendTransaction(ctx context.Context, from types.Account, to *common.Address, options ...interface{}) (common.Hash, error) {
-	return c.sendRawTransaction(ctx, from, to, options...)
 }
 
 func (c *Eth) GetTransaction(ctx context.Context, hash common.Hash) (types.Item, error) {

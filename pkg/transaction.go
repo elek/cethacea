@@ -140,7 +140,7 @@ func cancelTx(ceth *Ceth, s string) error {
 	}
 
 	to := account.Address()
-	res, err := client.SubmitTx(ctx, account, &to,
+	res, err := client.SendTransaction(ctx, account, &to,
 		chain.WithGas{Gas: tx.Gas() + 10},
 		chain.WithNonce{Nonce: tx.Nonce()},
 		chain.WithGasFeeCap{Value: new(big.Int).Add(tx.GasTipCap(), big.NewInt(10))},

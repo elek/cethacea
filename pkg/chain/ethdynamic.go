@@ -12,7 +12,6 @@ import (
 )
 
 func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *common.Address, opts ...interface{}) (hash common.Hash, err error) {
-
 	nonce, err := c.Client.PendingNonceAt(ctx, sender.Address())
 	if err != nil {
 		return hash, err

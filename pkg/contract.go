@@ -656,7 +656,7 @@ func call(ceth *Ceth, value *big.Int, data []byte) error {
 	}
 
 	to := contract.GetAddress()
-	tx, err := client.SubmitTx(ctx, account, &to, chain.WithData{Data: data}, chain.WithValue{Value: value})
+	tx, err := client.SendTransaction(ctx, account, &to, chain.WithData{Data: data}, chain.WithValue{Value: value})
 	if err != nil {
 		return err
 	}
@@ -704,7 +704,7 @@ func deploy(ceth *Ceth, quiet bool, alias *string, value *string, contractFile s
 			return fmt.Errorf("invald number")
 		}
 	}
-	txHash, err := client.SubmitTx(ctx, account, nil, chain.WithData{Data: codeData}, chain.WithValue{Value: v})
+	txHash, err := client.SendTransaction(ctx, account, nil, chain.WithData{Data: codeData}, chain.WithValue{Value: v})
 	if err != nil {
 		return err
 	}

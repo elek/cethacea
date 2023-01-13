@@ -41,7 +41,7 @@ func nativeTransfer(ceth *Ceth, amount string, to string) error {
 	if err != nil {
 		return err
 	}
-	tx, err := client.SubmitTx(ctx, account, &target, chain.WithValue{Value: value})
+	tx, err := client.SendTransaction(ctx, account, &target, chain.WithValue{Value: value})
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func tokenTransfer(ceth *Ceth, amount string, to string) error {
 	}
 
 	ca := contract.GetAddress()
-	tx, err := client.SubmitTx(ctx, account,
+	tx, err := client.SendTransaction(ctx, account,
 		&ca,
 		chain.WithData{Data: data})
 	if err != nil {

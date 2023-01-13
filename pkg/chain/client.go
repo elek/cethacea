@@ -12,6 +12,7 @@ type ChainClient interface {
 	Balance(ctx context.Context, account common.Address) (decimal.Decimal, error)
 	TokenBalance(ctx context.Context, token common.Address, account common.Address) (*big.Int, error)
 	TokenInfo(ctx context.Context, token common.Address) (TokenInfo, error)
+
 	GetTransaction(ctx context.Context, hash common.Hash) (types.Item, error)
 	GetChainID(ctx context.Context) (int64, error)
 	GetChainInfo(ctx context.Context) (types.Item, error)
