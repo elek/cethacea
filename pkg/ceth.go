@@ -54,8 +54,6 @@ func (c *Ceth) GetChainClient() (chain.ChainClient, error) {
 	switch cfg.Protocol {
 	case "eth":
 		return chain.NewEthFromURL(cfg.RPCURL)
-	case "zksync":
-		return chain.NewZkSyncFromURL(cfg.RPCURL)
 	default:
 		return nil, fmt.Errorf("unsupported protocol %s", cfg.Protocol)
 	}
