@@ -66,7 +66,14 @@ func EncodeArguments(resolver types.AddressResolver, arguments abi.Arguments, ar
 			}
 			size := arguments[ix].Type.Size
 			typedValues = append(typedValues, SliceToArray(size, val))
-
+		case abi.BoolTy:
+			val := false
+			for _, t := range []string{"1", "true"} {
+				if strings.ToLower(arg) == t {
+					val = true
+				}
+			}
+			typedValues = append(typedValues, val)
 		default:
 			return nil, fmt.Errorf("unsupported argument type %v", arguments[ix])
 		}
