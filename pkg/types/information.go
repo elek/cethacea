@@ -2,14 +2,26 @@ package types
 
 import (
 	"fmt"
+	"math/big"
 )
 
 type Field struct {
-	Name  string
-	Value interface{}
+	Name    string
+	Value   interface{}
+	Printer PrintType
 }
 
+type PrintType int
+
+var (
+	EthPrintType PrintType = 1
+)
+
 func (f *Field) String() string {
+	switch f.Printer {
+	case EthPrintType:
+		return PrettyETH(f.Value.(*big.Int))
+	}
 	switch f.Value.(type) {
 	case int, uint, int64, int32, int16, int8, uint64, uint32, uint16, uint8:
 		return fmt.Sprintf("%d", f.Value)

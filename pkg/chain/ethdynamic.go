@@ -3,11 +3,13 @@ package chain
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"github.com/elek/cethacea/pkg/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"github.com/zeebo/errs/v2"
 	"math/big"
 )
 
@@ -27,16 +29,19 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		return hash, errors.Wrap(err, "Couldn't get suggested gas price")
 	}
 
-	tip, err := c.Client.SuggestGasTipCap(ctx)
-	if err != nil {
-		return hash, errors.Wrap(err, "Couldn't get suggested gas price")
+	tip := c.gasTipCap
+	if tip == nil {
+		tip, err = c.Client.SuggestGasTipCap(ctx)
+		if err != nil {
+			return hash, errors.Wrap(err, "Couldn't get suggested gas price")
+		}
 	}
 
 	tx := ethtypes.DynamicFeeTx{
 		To:        to,
 		ChainID:   chainID,
 		Nonce:     nonce,
-		Gas:       8000000,
+		Gas:       c.gas,
 		GasTipCap: tip,
 	}
 
@@ -52,8 +57,8 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 	if err != nil {
 		return hash, errors.Wrap(err, "Couldn't sign the transaction")
 	}
-	log.Debug().
-		Hex("from", sender.Address().Bytes()).
+
+	log.Debug().Hex("from", sender.Address().Bytes()).
 		Str("to", optionalAddress(signedTx.To())).
 		Str("value", signedTx.Value().String()).
 		Str("data", hex.EncodeToString(signedTx.Data())).
@@ -61,6 +66,26 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		Int64("gasFeeCap", signedTx.GasFeeCap().Int64()).
 		Msg("eth_sendRawTransaction")
 
+	if c.confirm {
+		fmt.Printf("from:          %s\n", sender.Address().String())
+		fmt.Printf("to:            %s\n", optionalAddress(signedTx.To()))
+		fmt.Printf("value:         %s\n", types.PrettyETH(signedTx.Value()))
+		fmt.Printf("data:          %x\n", signedTx.Data())
+		fmt.Printf("gas-tip-cap:   %s\n", types.PrettyETH(signedTx.GasTipCap()))
+		fmt.Printf("gas-fee-cap:   %s\n", types.PrettyETH(signedTx.GasFeeCap()))
+		fmt.Printf("gas:           %d\n", signedTx.Gas())
+		fmt.Printf("max-gas-price: %s\n", types.PrettyETH(new(big.Int).Mul(signedTx.GasFeeCap(), big.NewInt(int64(signedTx.Gas())))))
+		fmt.Println("Are you sure to send it?")
+		s := ""
+		_, err := fmt.Scanln(&s)
+		if err != nil {
+			return common.Hash{}, errs.Wrap(err)
+		}
+		if s != "y" {
+			panic("not confirmed")
+		}
+
+	}
 	err = c.Client.SendTransaction(ctx, signedTx)
 	if err != nil {
 		return hash, errors.Wrap(err, "Couldn't send transaction")

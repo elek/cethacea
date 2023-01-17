@@ -3,6 +3,7 @@ package chain
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"github.com/elek/cethacea/pkg/encoding"
 	"github.com/elek/cethacea/pkg/types"
 	"github.com/ethereum/go-ethereum"
@@ -18,8 +19,12 @@ import (
 )
 
 type Eth struct {
-	Client *ethclient.Client
-	legacy bool
+	Client    *ethclient.Client
+	legacy    bool
+	noop      bool
+	confirm   bool
+	gas       uint64
+	gasTipCap *big.Int
 }
 
 func (c *Eth) GetAccountInfo(ctx context.Context, account common.Address) (types.Item, error) {
@@ -77,13 +82,16 @@ func (c *Eth) SendQuery(ctx context.Context, sender common.Address, to common.Ad
 
 var _ ChainClient = &Eth{}
 
-func NewEthFromURL(url string) (*Eth, error) {
+func NewEth(url string, confirm bool, gas uint64, gasTipCap *big.Int) (*Eth, error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Couldn't create ethereum client with url %s", url)
 	}
 	return &Eth{
-		Client: client,
+		confirm:   confirm,
+		Client:    client,
+		gas:       gas,
+		gasTipCap: gasTipCap,
 	}, nil
 
 }
@@ -145,6 +153,12 @@ func (c *Eth) FunctionCallData(function string, argTypes abi.Arguments, args ...
 		return nil, errors.Wrap(err, "Arguments couldn't be packed")
 	}
 	data = append(encoding.FunctionHash(function), data...)
+	if c.confirm {
+		fmt.Printf("function:      %s\n", function)
+		for i, a := range argTypes {
+			fmt.Printf("   %s: %s\n", a.Name, args[i])
+		}
+	}
 	return data, nil
 }
 
@@ -206,12 +220,14 @@ func (c *Eth) GetTransaction(ctx context.Context, hash common.Hash) (types.Item,
 					Value: tx.Gas(),
 				},
 				{
-					Name:  "gasFeeCap",
-					Value: tx.GasFeeCap(),
+					Name:    "gasFeeCap",
+					Value:   tx.GasFeeCap(),
+					Printer: types.EthPrintType,
 				},
 				{
-					Name:  "gasTipCap",
-					Value: tx.GasTipCap(),
+					Name:    "gasTipCap",
+					Value:   tx.GasTipCap(),
+					Printer: types.EthPrintType,
 				},
 				{
 					Name:  "type",
@@ -255,6 +271,25 @@ func (c *Eth) GetTransaction(ctx context.Context, hash common.Hash) (types.Item,
 				Value: receipt.CumulativeGasUsed,
 			},
 		}...)
+
+		block, err := c.Client.BlockByHash(ctx, receipt.BlockHash)
+		if err != nil {
+			return i, err
+		}
+		i.Record.Fields = append(i.Record.Fields,
+			types.Field{
+				Name:    "base-gas-fee",
+				Value:   block.BaseFee(),
+				Printer: types.EthPrintType,
+			},
+		)
+		i.Record.Fields = append(i.Record.Fields,
+			types.Field{
+				Name:    "fee",
+				Value:   new(big.Int).Mul(block.BaseFee(), big.NewInt(int64(receipt.GasUsed))),
+				Printer: types.EthPrintType,
+			},
+		)
 	}
 
 	return i, nil

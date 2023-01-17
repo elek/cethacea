@@ -11,17 +11,22 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
+	"math/big"
+	"strconv"
 	"strings"
 )
 
 type CethSettings struct {
-	Contract string
-	Chain    string
-	Account  string
-	Abi      string
-	Format   string
-	All      bool
-	Debug    bool
+	Contract  string
+	Chain     string
+	Account   string
+	Abi       string
+	Format    string
+	All       bool
+	Debug     bool
+	Confirm   bool
+	GasTipCap string
+	Gas       uint64
 }
 
 type Ceth struct {
@@ -39,7 +44,15 @@ func (c *Ceth) GetClient() (*chain.Eth, error) {
 	if cfg.Protocol != "" && cfg.Protocol != "eth" {
 		return nil, fmt.Errorf("this opreation is not supported with protocol %s", cfg.Protocol)
 	}
-	return chain.NewEthFromURL(cfg.RPCURL)
+	var cap *big.Int
+	if c.Settings.GasTipCap != "" {
+		u, err := strconv.Atoi(c.Settings.GasTipCap)
+		if err != nil {
+			return nil, err
+		}
+		cap = big.NewInt(int64(u))
+	}
+	return chain.NewEth(cfg.RPCURL, c.Settings.Confirm, c.Settings.Gas, cap)
 }
 
 func (c *Ceth) GetChainClient() (chain.ChainClient, error) {
@@ -53,7 +66,15 @@ func (c *Ceth) GetChainClient() (chain.ChainClient, error) {
 
 	switch cfg.Protocol {
 	case "eth":
-		return chain.NewEthFromURL(cfg.RPCURL)
+		var cap *big.Int
+		if c.Settings.GasTipCap != "" {
+			u, err := strconv.Atoi(c.Settings.GasTipCap)
+			if err != nil {
+				return nil, err
+			}
+			cap = big.NewInt(int64(u))
+		}
+		return chain.NewEth(cfg.RPCURL, c.Settings.Confirm, c.Settings.Gas, cap)
 	default:
 		return nil, fmt.Errorf("unsupported protocol %s", cfg.Protocol)
 	}

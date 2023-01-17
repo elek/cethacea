@@ -138,6 +138,6 @@ func PrintAmount(amount *big.Int, dec uint8, symbol string) string {
 		out = decimal.NewFromBigInt(amount, -1*int32(dec)).String()
 		out += " " + symbol
 	}
-	return out
+	return fmt.Sprintf("%s (%s)", out, amount.String())
 
 }
