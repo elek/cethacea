@@ -129,6 +129,7 @@ func (c *Eth) Call(ctx context.Context, sender types.Account, contract common.Ad
 	if err != nil {
 		return nil, err
 	}
+
 	txHash, err := c.sendRawTransaction(ctx, sender, &contract, WithData{data})
 	if err != nil {
 		return nil, errors.Wrap(err, "CallContract is failed")

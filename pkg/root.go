@@ -21,7 +21,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&Settings.Debug, "debug", false, "Turn on debug level logging")
 	RootCmd.PersistentFlags().BoolVar(&Settings.Confirm, "confirm", false, "Confirm transactions before send")
 	RootCmd.PersistentFlags().StringVar(&Settings.GasTipCap, "tip", "", "The gas tip to be paid (default: auto)")
-	RootCmd.PersistentFlags().Uint64Var(&Settings.Gas, "gas", 80000, "Gas to be used for the transaction")
+	RootCmd.PersistentFlags().Uint64Var(&Settings.Gas, "gas", 0, "Gas to be used for the transaction. Use 0 (default) to auto-estimate...")
 	_ = viper.BindPFlag("account", RootCmd.PersistentFlags().Lookup("account"))
 	_ = viper.BindPFlag("contract", RootCmd.PersistentFlags().Lookup("contract"))
 	_ = viper.BindPFlag("chain", RootCmd.PersistentFlags().Lookup("chain"))

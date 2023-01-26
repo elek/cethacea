@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/elek/cethacea/pkg/types"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
@@ -41,7 +42,6 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 		To:        to,
 		ChainID:   chainID,
 		Nonce:     nonce,
-		Gas:       c.gas,
 		GasTipCap: tip,
 	}
 
@@ -49,6 +49,20 @@ func (c *Eth) sendRawTransaction(ctx context.Context, sender types.Account, to *
 	if err != nil {
 		return hash, err
 	}
+
+	gas := c.gas
+	if gas == 0 {
+		gas, err = c.Client.EstimateGas(context.Background(), ethereum.CallMsg{
+			From: sender.Address(),
+			To:   to,
+			Data: tx.Data,
+		})
+		if err != nil {
+			return hash, err
+		}
+		gas = gas * 13 / 10
+	}
+	tx.Gas = uint64(gas)
 
 	tx.GasFeeCap = new(big.Int).Add(new(big.Int).Mul(baseGas, big.NewInt(2)), tx.GasTipCap)
 
