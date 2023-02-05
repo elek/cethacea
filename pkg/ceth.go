@@ -75,6 +75,8 @@ func (c *Ceth) GetChainClient() (chain.ChainClient, error) {
 			cap = big.NewInt(int64(u))
 		}
 		return chain.NewEth(cfg.RPCURL, c.Settings.Confirm, c.Settings.Gas, cap)
+	case "zksync2":
+		return chain.NewZksync2(cfg.RPCURL, c.Settings.Confirm)
 	default:
 		return nil, fmt.Errorf("unsupported protocol %s", cfg.Protocol)
 	}
@@ -178,6 +180,10 @@ func (c *Ceth) ResolveAddress(address string) (common.Address, error) {
 
 func (c *Ceth) GetCurrentContract() (types.Contract, error) {
 	return c.ContractRepo.GetCurrentContract()
+}
+
+func (c *Ceth) GetCurrentAccount() (types.Account, error) {
+	return c.AccountRepo.GetCurrentAccount()
 }
 
 func (c *Ceth) getCurrentChainID() (int64, error) {

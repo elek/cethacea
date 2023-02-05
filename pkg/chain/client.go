@@ -17,6 +17,7 @@ type ChainClient interface {
 	GetChainID(ctx context.Context) (int64, error)
 	GetChainInfo(ctx context.Context) (types.Item, error)
 	GetAccountInfo(ctx context.Context, account common.Address) (types.Item, error)
+
 	SendTransaction(ctx context.Context, from types.Account, to *common.Address, options ...interface{}) (common.Hash, error)
 	SendQuery(ctx context.Context, from common.Address, to common.Address, options ...interface{}) ([]byte, error)
 }

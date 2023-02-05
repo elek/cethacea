@@ -51,10 +51,16 @@ func nativeTransfer(ceth *Ceth, amount string, to string) error {
 
 func tokenTransfer(ceth *Ceth, amount string, to string) error {
 	ctx := context.Background()
-	account, contract, client, err := ceth.AccountContractClient()
+	account, err := ceth.GetCurrentAccount()
 	if err != nil {
 		return err
 	}
+
+	contract, err := ceth.GetCurrentContract()
+	if err != nil {
+		return err
+	}
+
 	argumentTypes := abi.Arguments{
 		abi.Argument{
 			Name: "address",
@@ -77,13 +83,18 @@ func tokenTransfer(ceth *Ceth, amount string, to string) error {
 		return err
 	}
 	value, _ := new(big.Int).SetString(amount, 10)
-	data, err := client.FunctionCallData("transfer(address,uint256)", argumentTypes, target, value)
+	data, err := chain.FunctionCallData("transfer(address,uint256)", argumentTypes, target, value)
 	if err != nil {
 		return err
 	}
 
 	ca := contract.GetAddress()
-	tx, err := client.SendTransaction(ctx, account,
+	cc, err := ceth.GetChainClient()
+	if err != nil {
+		return err
+	}
+
+	tx, err := cc.SendTransaction(ctx, account,
 		&ca,
 		chain.WithData{Data: data})
 	if err != nil {
